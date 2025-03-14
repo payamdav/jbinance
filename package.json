@@ -1,0 +1,10 @@
+{
+  "name": "jbinance",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {},
+  "dependencies": {
+    "@ixjb94/indicators-js": "^1.0.0",
+    "simple-statistics": "^7.8.8"
+  }
+}
