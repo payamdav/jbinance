@@ -1,6 +1,5 @@
 import fs from 'fs/promises';
-import {config} from '../../../../config.js';
-import {FileStructure, get_file_size, append_to_binary_file} from './common.js';
+import {FileStructure, append_to_binary_file} from './common.js';
 
 
 async function import_raw_snapshot(from_index=0, to_index=9999999999) {
@@ -16,7 +15,7 @@ async function import_raw_snapshot(from_index=0, to_index=9999999999) {
             symbol['last_snapshot_update_id'] = 0;
         }
         else {
-            // read last line of index file
+            // read last line of index file - snapshot idx record set: ts, update_id, start_offset, length, bids_size, asks_size
             let buffer = Buffer.alloc(8 + 8 + 8 + 8 + 4 + 4);
             await symbol['snapshotsidx_handle'].read(buffer, 0, buffer.length, symbol['snapshotsidx_size'] - buffer.length);
             let ts = Number(buffer.readBigUInt64BE(0));
@@ -89,4 +88,5 @@ async function import_raw_snapshot(from_index=0, to_index=9999999999) {
 
 
 // await import_raw_snapshot(0,0);
-await import_raw_snapshot();
+// await import_raw_snapshot();
+await import_raw_snapshot(4);
