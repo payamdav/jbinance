@@ -153,15 +153,15 @@ export class Snapshot {
 }
 
 
-let snapshot = new Snapshot('BTCUSDT');
-console.log(await snapshot.index_file_size());
-console.log(await snapshot.count());
-console.log(await snapshot.index(0));
-console.log(await snapshot.index(1));
-console.log(await snapshot.all_index());
-console.log(await snapshot.read(200));
+// let snapshot = new Snapshot('BTCUSDT');
+// console.log(await snapshot.index_file_size());
+// console.log(await snapshot.count());
+// console.log(await snapshot.index(0));
+// console.log(await snapshot.index(1));
+// console.log(await snapshot.all_index());
+// console.log(await snapshot.read(200));
 
-console.log('-------------------------');
+// console.log('-------------------------');
 
 // snapshot = new Snapshot('XRPUSDT');
 // console.log(await snapshot.index_file_size());
