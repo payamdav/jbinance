@@ -1,4 +1,4 @@
-import { config } from "../../../config.js";
+import { config } from "../../../../config.js";
 import fs from 'fs/promises';
 
 
@@ -87,6 +87,7 @@ export class Update {
             asks: a
         };
     }
+
     async read(idx) {
         let index = await this.index(idx);
         return await this.read_data(index.offset, index.size, index.bids_size, index.asks_size);
@@ -122,6 +123,21 @@ export class Update {
             idx: -1,
             index: null
         }
+    }
+
+    async find_index_of_relevant_update_for_snapshot(s) { // s is snapshot header object
+        let count = await this.count();
+        let left = 0;
+        let right = count - 1;
+        let index = null;
+        while (left <= right) {
+            let mid = Math.floor((left + right) / 2);
+            index = await this.index(mid);
+            if (index.u_id < s.update_id) left = mid + 1;
+            else if (index.U_id > s.update_id) right = mid - 1;
+            else return mid;
+        }
+        return -1;
     }
 
 }

@@ -1,6 +1,7 @@
 import {Update} from './update.js';
 import {Snapshot} from './snapshot.js';
-import {Timer} from '../utils/timer.js';
+import {OB} from './ob.js';
+import {Timer} from '../../utils/timer.js';
 
 
 
@@ -65,11 +66,11 @@ class OBChecker {
             this.ru = await this.adjust_to_relevant_update();
             if (!this.ru) {
                 this.count_none_relevant_update++;
-                // console.log(`No relevant update for snapshot ${this.sid}`);
+                console.log(`No relevant update for snapshot ${this.sid}`);
                 this.next_snapshot();
                 continue;
             }
-            // console.log(`snapshot: ${this.sid} => update ${this.uid}`, ` ${this.u.U_id}  ${this.s.update_id}   ${this.u.u_id}`);
+            console.log(`snapshot: ${this.sid} => update ${this.uid}`, ` ${this.u.U_id}  ${this.s.update_id}   ${this.u.u_id}`);
             let time_diff = Math.abs(this.s.ts - this.u.ts);
             if (time_diff > 1000) {
                 this.count_time_diff_error++;
@@ -97,6 +98,31 @@ class OBChecker {
     }
 
 
+}
+
+
+async function test_method_update_find_index_of_relevant_update_for_snapshot(symbol) {
+    let update = new Update(symbol);
+    let snapshot = new Snapshot(symbol);
+
+    await update.open_files();
+    await snapshot.open_index();
+
+    let count = await snapshot.count();
+    for (let i = 0; i < count; i++) {
+        let s = await snapshot.index(i);
+        let index = await update.find_index_of_relevant_update_for_snapshot(s);
+        console.log(`snapshot ${i} - index: ${index}`);
+        continue;
+        if (index === -1) {
+            console.log(`No relevant update for snapshot ${i}`);
+        } else {
+            console.log(`Relevant update for snapshot ${i} is ${index}`);
+        }
+    }
+
+    await update.close_files();
+    await snapshot.close_index();
 }
 
 
@@ -165,6 +191,20 @@ async function bids_asks_validity(symbol) {
     await update.close_files();
 }
 
+async function ob_test_1(symbol) {
+    let ob = new OB(symbol);
+    let res = await ob.find_first_snapshot_aligned_with_update();
+    console.log(res);
+    // await ob.destroy();
+}
+
+async function ob_test_2(symbol) {
+    let ob = new OB(symbol);
+    await ob.build_from_first_till_last_update();
+    ob.tests();
+}
+
+
 let symbols = ['adausdt', 'btcusdt', 'ethusdt', 'xrpusdt', 'vineusdt', 'trumpusdt', 'dogeusdt'];
 
 let timer = new Timer();
@@ -175,9 +215,13 @@ for (const symbol of symbols) {
     // await update_index_alignment(symbol);
     // await bids_asks_validity(symbol);
 
-    let ob_checker = new OBChecker(symbol);
-    await ob_checker.start();
+    // let ob_checker = new OBChecker(symbol);
+    // await ob_checker.start();
+
+    // await test_method_update_find_index_of_relevant_update_for_snapshot(symbol);
+    await ob_test_2(symbol);
 
 }
 
+timer.checkpoint('all');
 
