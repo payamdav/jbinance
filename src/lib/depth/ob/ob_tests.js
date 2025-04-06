@@ -2,6 +2,7 @@ import {Update} from './update.js';
 import {Snapshot} from './snapshot.js';
 import {OB} from './ob.js';
 import {Timer} from '../../utils/timer.js';
+import {save, load} from '../../utils/file/saveload.js';
 
 
 
@@ -207,21 +208,71 @@ async function ob_test_2(symbol) {
 
 let symbols = ['adausdt', 'btcusdt', 'ethusdt', 'xrpusdt', 'vineusdt', 'trumpusdt', 'dogeusdt'];
 
+// let timer = new Timer();
+
+// for (const symbol of symbols) {
+//     timer.checkpoint(symbol);
+//     console.log('-------------------------');
+//     // await update_index_alignment(symbol);
+//     // await bids_asks_validity(symbol);
+
+//     // let ob_checker = new OBChecker(symbol);
+//     // await ob_checker.start();
+
+//     // await test_method_update_find_index_of_relevant_update_for_snapshot(symbol);
+//     await ob_test_2(symbol);
+
+// }
+
+// timer.checkpoint('all');
+
+async function ob_spread(symbol) {
+    let ob = new OB(symbol);
+    let spread = [];
+    await ob.build_from_first_till_last_update((o) => {
+        let s = {
+            ts: o.ts,
+            b: o.best_bid(),
+            a: o.best_ask(),
+        };
+        spread.push(s);
+    }
+    );
+    await save(spread, `${symbol}_spread.json`);
+    console.log(`Finished building order book from first snapshot to last update`);
+}
+
+async function print_spread(symbol) {
+    let spread = await load(`${symbol}_spread.json`);
+    // console.log(spread);
+    console.log(spread.length);
+    console.log(spread[0]);
+    console.log(spread[spread.length - 1]);
+    let ss = [];
+    for (const s of spread) {
+        if (s.a < s.b) {
+            // console.log(`Spread error at: ${s.ts} ${s.a} ${s.b}`);
+        }
+        else {
+            ss.push((s.a - s.b) / s.b);
+        }
+    }
+    let max_s = ss.reduce((a, b) => Math.max(a, b));
+    let avg_s = ss.reduce((a, b) => a + b) / ss.length;
+    console.log(`max spread: ${max_s}`);
+    console.log(`avg spread: ${avg_s}`);
+}
+
+
+// await ob_spread('vineusdt');
+// await print_spread('vineusdt');
+
 let timer = new Timer();
 
 for (const symbol of symbols) {
     timer.checkpoint(symbol);
     console.log('-------------------------');
-    // await update_index_alignment(symbol);
-    // await bids_asks_validity(symbol);
-
-    // let ob_checker = new OBChecker(symbol);
-    // await ob_checker.start();
-
-    // await test_method_update_find_index_of_relevant_update_for_snapshot(symbol);
-    await ob_test_2(symbol);
-
+    await ob_spread(symbol);
 }
 
 timer.checkpoint('all');
-

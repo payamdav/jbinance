@@ -28,7 +28,7 @@ export class OB {
         return null;
     }
 
-    async build_from_first_till_last_update() {
+    async build_from_first_till_last_update(cb=undefined, bcb=undefined, acb=undefined) {
         let ucount = await this.update.count();
         let first = await this.find_first_snapshot_aligned_with_update();
         if (first === null) {
@@ -50,16 +50,38 @@ export class OB {
             this.ts = u.ts;
             this.update_id = u.u_id;
             let res = await this.update.read_data(u.offset, u.size, u.bids_size, u.asks_size);
-            this.apply_bids(res.bids);
-            this.apply_asks(res.asks);
+            this.apply_bids(res.bids, bcb);
+            this.apply_asks(res.asks, acb);
+            if (cb !== undefined) cb(this);
 
-            // if (i % 10000 === 0) console.log(`i: ${i}`);
+            // if (i % 10000 === 0) console.log(`i: ${i} / ${ucount}`);
         }
 
         await this.update.close_files();
         console.log(`Finished building order book from first snapshot to last update`);
     }
 
+    best_bid() {
+        let price = -1;
+        for (const [p, s] of this.b) {
+            if (p > price) {
+                price = p;
+            }
+        }
+        return price;
+    }
+
+    best_ask() {
+        let price = Number.MAX_VALUE;
+        for (const [p, s] of this.a) {
+            if (p < price) {
+                price = p;
+            }
+        }
+        return price;
+    }
+
+    
     tests() {
         const eps = 0.000000001
         console.log(`Count bids: ${this.b.size} asks: ${this.a.size}`);
@@ -97,7 +119,7 @@ export class OB {
     }
 
 
-    apply_bids(bids) {
+    apply_bids(bids, cb=undefined) {
         for (const [price, size] of bids) {
             if (size === 0) {
                 this.b.delete(price);
@@ -105,9 +127,10 @@ export class OB {
                 this.b.set(price, size);
             }
         }
+        if (cb !== undefined) cb(this);
     }
 
-    apply_asks(asks) {
+    apply_asks(asks, cb=undefined) {
         for (const [price, size] of asks) {
             if (size === 0) {
                 this.a.delete(price);
@@ -115,6 +138,7 @@ export class OB {
                 this.a.set(price, size);
             }
         }
+        if (cb !== undefined) cb(this);
     }
 
 
